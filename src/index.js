@@ -1,17 +1,17 @@
 require("./models/User");
-// require("./models/Tweet");
+require("./models/Tweet");
 require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const authRoutes = require("./routes/authRoutes");
-// const trackRoutes = require("./routes/tweetRoute");
+const tweetRoutes = require("./routes/tweetRoute");
 const requireAuth = require("./middlewares/requireAuth");
 
 const app = express();
 app.use(bodyParser.json());
 app.use(authRoutes);
-// app.use(tweetRoutes);
+app.use(tweetRoutes);
 
 mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,

@@ -13,7 +13,7 @@ const comment = new mongoose.Schema({
     },
   },
 });
-const trackSchema = new mongoose.Schema({
+const tweetScheme = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
@@ -40,4 +40,4 @@ const trackSchema = new mongoose.Schema({
   comments: [comment],
 });
 
-mongoose.model("Track", trackSchema);
+mongoose.model("Tweet", tweetScheme);

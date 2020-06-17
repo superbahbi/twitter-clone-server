@@ -6,12 +6,14 @@ const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const authRoutes = require("./routes/authRoutes");
 const tweetRoutes = require("./routes/tweetRoute");
+const userRoutes = require("./routes/userRoute");
 const requireAuth = require("./middlewares/requireAuth");
 
 const app = express();
 app.use(bodyParser.json());
 app.use(authRoutes);
 app.use(tweetRoutes);
+app.use(userRoutes)
 
 mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,

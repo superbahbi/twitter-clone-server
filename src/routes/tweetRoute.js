@@ -23,6 +23,7 @@ router.post("/tweet", async (req, res) => {
       userId: req.user._id,
       username: req.user.username,
       name: req.user.profile.name,
+      avatar: req.user.profile.filename,
       timestamp: new Date(),
       content,
     });

@@ -8,10 +8,11 @@ const router = express.Router();
 
 router.use(requireAuth);
 
-router.get("/users", async (req, res) => {
-  const tracks = await Track.find({ userId: req.user._id });
-
-  res.send(tracks);
+router.get("/user", async (req, res) => {
+  const { username, _id, tweets, following, followers, profile } = req.user;
+  console.log(req.user);
+  console.log("test");
+  res.send({ username, _id, tweets, following, followers, profile });
 });
 
 router.post("/profile", async (req, res) => {

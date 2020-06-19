@@ -23,12 +23,29 @@ router.post("/tweet", async (req, res) => {
       userId: req.user._id,
       username: req.user.username,
       name: req.user.profile.name,
-      avatar: req.user.profile.filename,
+      avatar: req.user.profile.avatar.filename,
       timestamp: new Date(),
       content,
     });
     await tweet.save();
     res.send(tweet);
+  } catch (err) {
+    res.status(422).send({ error: err.message });
+  }
+});
+router.delete("/tweet", async (req, res) => {
+  const { _id } = req.body;
+  console.log("id", _id);
+  if (!_id) {
+    return res.status(422).send({ error: "Can't delete this Tweet" });
+  }
+  try {
+    console.log(_id);
+    Tweet.deleteOne({ _id }, function (err) {
+      if (err) return handleError(err);
+      res.send("Tweet deleted");
+    });
+    // Verify id is owned by the user
   } catch (err) {
     res.status(422).send({ error: err.message });
   }

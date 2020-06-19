@@ -10,8 +10,6 @@ router.use(requireAuth);
 
 router.get("/user", async (req, res) => {
   const { username, _id, tweets, following, followers, profile } = req.user;
-  console.log(req.user);
-  console.log("test");
   res.send({ username, _id, tweets, following, followers, profile });
 });
 

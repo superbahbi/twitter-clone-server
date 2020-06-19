@@ -25,6 +25,7 @@ const tweetScheme = new mongoose.Schema({
   name: String,
   timestamp: Date,
   content: String,
+  avatar: String,
   retweets: {
     type: String,
     default: 0,

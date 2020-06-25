@@ -5,12 +5,9 @@ const comment = new mongoose.Schema({
   username: String,
   timestamp: Date,
   content: String,
-  avatar: String,
-  img: {
-    filename: {
-      type: String,
-      default: "replaceme.jpg",
-    },
+  avatar: {
+    type: String,
+    default: "replaceme.jpg",
   },
 });
 const tweetScheme = new mongoose.Schema({

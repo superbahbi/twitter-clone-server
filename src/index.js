@@ -13,12 +13,13 @@ const app = express();
 app.use(bodyParser.json());
 app.use(authRoutes);
 app.use(tweetRoutes);
-app.use(userRoutes)
+app.use(userRoutes);
 
 mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
   useCreateIndex: true,
   useUnifiedTopology: true,
+  useFindAndModify: true,
 });
 
 mongoose.connection.on("connected", () => {

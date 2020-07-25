@@ -1,7 +1,12 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const requireAuth = require("../middlewares/requireAuth");
-
+var cloudinary = require("cloudinary");
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_API_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 const Tweet = mongoose.model("Tweet");
 
 const router = express.Router();
@@ -9,15 +14,32 @@ const router = express.Router();
 router.use(requireAuth);
 
 router.get("/tweet", async (req, res) => {
-  const tweets = await Tweet.find({});
+  const tweets = await Tweet.find({}).sort("-timestamp");
   res.send(tweets);
 });
 
 router.post("/tweet", async (req, res) => {
   const { content } = req.body;
+
   if (!content) {
     return res.status(422).send({ error: "Invalid Tweet" });
   }
+  let tweetimg = "";
+  if (content.newFile !== "") {
+    tweetimg = await cloudinary.v2.uploader.upload(
+      content.newFile.file,
+      { folder: "tweetImg" },
+      (error, result) => {
+        if (error) {
+          console.log(error);
+        }
+        if (result) {
+          return result;
+        }
+      }
+    );
+  }
+  console.log("img url:", tweetimg);
   try {
     const tweet = new Tweet({
       userId: req.user._id,
@@ -25,7 +47,8 @@ router.post("/tweet", async (req, res) => {
       name: req.user.profile.name,
       avatar: req.user.profile.avatar.filename,
       timestamp: new Date(),
-      content,
+      content: content.newTweet,
+      img: { filename: tweetimg.url },
     });
     await tweet.save();
     res.send(tweet);
@@ -87,7 +110,7 @@ router.post("/tweet/like", async (req, res) => {
           }
         });
       }
-      const tweets = await Tweet.find({});
+      const tweets = await Tweet.find({}).sort("-timestamp");
       res.send(tweets);
     });
   } catch (err) {

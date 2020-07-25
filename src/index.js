@@ -4,13 +4,16 @@ require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
+const cors = require("cors");
 const authRoutes = require("./routes/authRoutes");
 const tweetRoutes = require("./routes/tweetRoute");
 const userRoutes = require("./routes/userRoute");
 const requireAuth = require("./middlewares/requireAuth");
 
 const app = express();
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: "10mb", extended: true }));
+app.use(bodyParser.urlencoded({ limit: "10mb", extended: true }));
+app.use(cors());
 app.use(authRoutes);
 app.use(tweetRoutes);
 app.use(userRoutes);

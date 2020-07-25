@@ -6,6 +6,7 @@ const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const authRoutes = require("./routes/authRoutes");
+const notificationRoutes = require("./routes/notificationRoute");
 const tweetRoutes = require("./routes/tweetRoute");
 const userRoutes = require("./routes/userRoute");
 const requireAuth = require("./middlewares/requireAuth");
@@ -15,6 +16,7 @@ app.use(bodyParser.json({ limit: "10mb", extended: true }));
 app.use(bodyParser.urlencoded({ limit: "10mb", extended: true }));
 app.use(cors());
 app.use(authRoutes);
+app.use(notificationRoutes);
 app.use(tweetRoutes);
 app.use(userRoutes);
 

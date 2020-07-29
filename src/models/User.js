@@ -14,14 +14,48 @@ const userSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
-  following: {
-    type: Number,
-    default: 0,
-  },
-  followers: {
-    type: Number,
-    default: 0,
-  },
+  following: [
+    {
+      _id: String,
+      name: String,
+      username: String,
+    },
+  ],
+  followers: [
+    {
+      _id: String,
+      name: String,
+      username: String,
+    },
+  ],
+  messages: [
+    {
+      _id: mongoose.Types.ObjectId,
+      data: [
+        {
+          _id: mongoose.Types.ObjectId,
+          text: String,
+          createdAt: Date,
+          user: {
+            _id: mongoose.Types.ObjectId,
+            name: String,
+            avatar: String,
+          },
+          image: String,
+          // You can also add a video prop:
+          video: String,
+          // Mark the message as sent, using one tick
+          sent: Boolean,
+          // Mark the message as received, using two tick
+          received: Boolean,
+          // Mark the message as pending with a clock loader
+          pending: Boolean,
+          // Any additional custom parameters are passed through
+        },
+      ],
+    },
+  ],
+
   profile: {
     email: {
       type: String,

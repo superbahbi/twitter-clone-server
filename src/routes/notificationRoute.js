@@ -22,6 +22,6 @@ router.get("/send", async (req, res) => {
     },
     body: JSON.stringify(message),
   });
-  return result;
+  res.send(result);
 });
 module.exports = router;

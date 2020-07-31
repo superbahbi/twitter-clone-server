@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const requireAuth = require("../middlewares/requireAuth");
 var cloudinary = require("cloudinary");
+const { route } = require("./userRoute");
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_API_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -12,6 +13,14 @@ const Tweet = mongoose.model("Tweet");
 const router = express.Router();
 
 router.use(requireAuth);
+
+router.get("/tweet/:username", async (req, res) => {
+  console.log("profile");
+  const username = req.params.username;
+  console.log(username);
+  const tweets = await Tweet.find({ username }).sort("-timestamp");
+  res.send(tweets);
+});
 
 router.get("/tweet", async (req, res) => {
   const tweets = await Tweet.find({}).sort("-timestamp");
@@ -152,4 +161,5 @@ router.post("/tweet/comment", async (req, res) => {
     res.status(422).send({ error: err.message });
   }
 });
+
 module.exports = router;

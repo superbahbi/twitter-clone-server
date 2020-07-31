@@ -42,10 +42,3 @@ router.post("/chatroom", async (req, res) => {
   res.send("test");
 });
 module.exports = router;
-// {
-//   "data" : []
-// },
-// {
-//   "_id" : ObjectId("5ee16d48197fc723dc0ed9aa"),
-//   "data" : []
-// }

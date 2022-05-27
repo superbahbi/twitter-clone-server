@@ -36,6 +36,7 @@ mongoose.connection.on("error", err => {
 app.use(cors());
 app.use(
   session({
+    secret: process.env.SESSION_SECRET,
     resave: true,
     saveUninitialized: true,
     secret: process.env.SESSION_SECRET,
@@ -80,7 +81,7 @@ app.use("/uploads", express.static(process.cwd() + "/uploads"));
 // app.get("/test", homeController.test);
 
 // Routes for react views
-app.get("/", function(req, res) {
+app.get("/", function (req, res) {
   res.json("https://github.com/superbahbi/twitter-clone api endpoint");
 });
 app.post("/api/login", apiController.postLogin);

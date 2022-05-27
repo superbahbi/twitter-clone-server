@@ -1,0 +1,12 @@
+language: node_js
+node_js:
+  - "node"
+os: windows
+services: mongodb
+cache:
+  directories:
+    - "node_modules"
+install:
+  - npm install
+script:
+  - npm test

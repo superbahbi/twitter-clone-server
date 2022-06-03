@@ -18,6 +18,17 @@ const userSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  chatroom: [{
+    _id: String,
+    sender: String,
+    receiver: String,
+    avatar: {
+      type: String,
+      default:
+        "http://res.cloudinary.com/dlz6xmn1q/image/upload/v1583088333/avatar/gf5k6jlwwebdlgmtrq1g.png"
+    },
+    name: String,
+  }],
   profile: {
     name: String,
     email: { type: String, unique: true },
@@ -47,11 +58,11 @@ const userSchema = new mongoose.Schema({
 userSchema.plugin(passportLocalMongoose);
 const User = mongoose.model("User", userSchema);
 passport.use(User.createStrategy());
-passport.serializeUser(function(user, done) {
+passport.serializeUser(function (user, done) {
   done(null, user);
 });
 
-passport.deserializeUser(function(user, done) {
+passport.deserializeUser(function (user, done) {
   done(null, user);
 });
 module.exports = User;

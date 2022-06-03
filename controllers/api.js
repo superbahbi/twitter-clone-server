@@ -8,8 +8,6 @@ const _ = require("lodash");
 const jwt = require("jsonwebtoken");
 const upload = require("../models/Upload");
 exports.postSignup = (req, res) => {
-  console.log(req.body);
-
   const username = req.body.username || "";
   const email = req.body.email || "";
   const password = req.body.password || "";
@@ -76,7 +74,7 @@ exports.postSignup = (req, res) => {
       }
     }),
     password,
-    function(err, user) {
+    function (err, user) {
       if (err) {
         validationErrors.push(err);
         res.status(400).json(validationErrors);
@@ -115,7 +113,7 @@ exports.postLogin = (req, res, next) => {
     username: username,
     password: password
   });
-  req.login(user, function(err) {
+  req.login(user, function (err) {
     if (err) {
       validationErrors.push({
         success: false,
@@ -123,7 +121,7 @@ exports.postLogin = (req, res, next) => {
       });
       res.status(400).json(validationErrors);
     } else {
-      passport.authenticate("local", function(error, user, info) {
+      passport.authenticate("local", function (error, user, info) {
         if (user) {
           user = user.toObject();
           delete user.salt;
@@ -151,7 +149,6 @@ exports.postLogin = (req, res, next) => {
     }
   });
 };
-
 exports.getAllTweet = (req, res) => {
   Tweet.aggregate(
     [
@@ -181,7 +178,7 @@ exports.getAllTweet = (req, res) => {
         }
       }
     ],
-    function(err, foundTweet) {
+    function (err, foundTweet) {
       if (err) {
         console.log(err);
       }
@@ -221,7 +218,7 @@ exports.getUserTweet = (req, res) => {
         }
       }
     ],
-    function(err, foundTweet) {
+    function (err, foundTweet) {
       if (err) {
         console.log(err);
       }
@@ -239,8 +236,15 @@ exports.getUser = (req, res) => {
     res.json(foundUser);
   });
 };
+exports.getUserWithID = (req, res) => {
+  User.findOne({ _id: req.params.id }, (err, foundUser) => {
+    if (err) {
+      res.json(err);
+    }
+    res.json(foundUser);
+  });
+};
 exports.postTweet = (req, res, next) => {
-  console.log(req.body);
   // TODO: Data validator
   //Creating new tweet data
   let tweet = new Tweet();
@@ -249,7 +253,7 @@ exports.postTweet = (req, res, next) => {
     {
       username: req.decoded.username
     },
-    function(err, user) {
+    function (err, user) {
       tweet._id = new ObjectId();
       tweet.username = user.username;
       tweet.name = user.profile.name;
@@ -262,7 +266,7 @@ exports.postTweet = (req, res, next) => {
           case "image/jpeg":
             upload.uploadToCloud(req, (result, error) => {
               tweet.img.filename = result.url;
-              tweet.save(function(err, t) {
+              tweet.save(function (err, t) {
                 if (err) {
                   res.status(400).json(err);
                 } else {
@@ -276,7 +280,7 @@ exports.postTweet = (req, res, next) => {
             break;
         }
       } else {
-        tweet.save(function(err, t) {
+        tweet.save(function (err, t) {
           if (err) {
             res.status(400).json(err);
             return;
@@ -289,8 +293,51 @@ exports.postTweet = (req, res, next) => {
     }
   );
 };
+exports.getAllUser = (req, res) => {
+  User.aggregate(
+    [
+      {
+        $lookup: {
+          from: "users",
+          localField: "username",
+          foreignField: "username",
+          as: "user_data"
+        }
+      },
+      {
+        $project: {
+          "salt": 0,
+          "hash": 0,
+          "profile.phone": 0,
+          "profile.birthday": 0,
+          "user_data": 0
+
+        }
+      },
+      {
+        $unwind: {
+          path: "$user_data",
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      {
+        $sort: {
+          timestamp: -1
+        }
+      }
+    ],
+    function (err, foundUser) {
+      if (err) {
+        console.log(err);
+      }
+      res.send(
+        foundUser
+      );
+    }
+  );
+};
 exports.deleteTweet = (req, res, next) => {
-  Tweet.deleteOne({ _id: req.body.id }, function(err, result) {
+  Tweet.deleteOne({ _id: req.body.id }, function (err, result) {
     if (err) {
       return res.send(err);
     } else {
@@ -299,13 +346,11 @@ exports.deleteTweet = (req, res, next) => {
   });
 };
 exports.updateUser = async (req, res, next) => {
-  console.log(req.body);
-
   User.findOne(
     {
       username: req.body.username
     },
-    function(err, user) {
+    function (err, user) {
       switch (req.body.field) {
         case "name":
           user.profile.name = req.body.content;
@@ -332,14 +377,12 @@ exports.updateUser = async (req, res, next) => {
   );
 };
 exports.uploadPhoto = async (req, res, next) => {
-  console.log("Change");
-  console.log(req.body);
   if (req.body.username && req.file && req.body.type) {
     User.findOne(
       {
         username: req.body.username
       },
-      function(err, user) {
+      function (err, user) {
         if (err) {
           res.status(400).json(err);
         }
@@ -366,8 +409,6 @@ exports.uploadPhoto = async (req, res, next) => {
                     res.status(400).json("Invalid type");
                     break;
                 }
-                console.log(req.body.type);
-                console.log(result.url);
                 user.save(err => {
                   if (err) {
                     return next(err);
@@ -398,9 +439,8 @@ exports.likeTweet = async (req, res, next) => {
         _id: tweetId
       },
 
-      function(err, tweet) {
+      function (err, tweet) {
         let deleted = false;
-        // console.log(tweet);
         if (err) {
           res.status(400).json(err);
         }
@@ -412,7 +452,7 @@ exports.likeTweet = async (req, res, next) => {
             Tweet.findOneAndUpdate(
               { _id: tweetId },
               { $pull: { likes: { _id: profileId } } },
-              function(err, data) {
+              function (err, data) {
                 if (err) {
                   return res
                     .status(500)
@@ -439,7 +479,6 @@ exports.likeTweet = async (req, res, next) => {
   }
 };
 exports.postComment = async (req, res, next) => {
-  console.log(req.body);
   const name = req.body.name || "";
   const username = req.body.username || "";
   const comment = req.body.comment || "";
@@ -467,9 +506,8 @@ exports.postComment = async (req, res, next) => {
         _id: tweetId
       },
 
-      async function(err, tweet) {
+      async function (err, tweet) {
         let deleted = false;
-        // console.log(tweet);
         if (err) {
           res.status(400).json(err);
         }
@@ -565,7 +603,7 @@ exports.getThreadTweet = async (req, res, next) => {
           }
         }
       ],
-      function(err, foundTweet) {
+      function (err, foundTweet) {
         if (err) {
           console.log(err);
         }
@@ -578,3 +616,39 @@ exports.getThreadTweet = async (req, res, next) => {
     res.status(400).json("Missing comment");
   }
 };
+exports.createChatRoom = async (req, res, next) => {
+  const userData = req.body || "";
+
+  // Todo check if chat room already exists
+  User.findOne(
+    {
+      _id: userData.senderID
+    },
+    function (err, user) {
+      data = {
+        _id: userData._id,
+        sender: userData.senderID,
+        receiver: userData.receiverID,
+        avatar: userData.avatar,
+        name: userData.name,
+      };
+      user.chatroom.push(data);
+      user.save(err => {
+        if (err) {
+          return next(err);
+        }
+        console.log(data)
+        res.json(user);
+      });
+    }
+  );
+}
+exports.getCurrentUserChatRoom = async (req, res, next) => {
+  console.log(req.params);
+  User.findOne({ _id: req.params.id }, (err, foundChatRoom) => {
+    if (err) {
+      res.json(err);
+    }
+    res.json(foundChatRoom.chatroom);
+  });
+}

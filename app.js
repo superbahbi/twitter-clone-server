@@ -114,6 +114,7 @@ app.put("/api/like/:id", authentication.checkToken, apiController.likeTweet);
 app.put("/api/profile", authentication.checkToken, apiController.updateUser);
 app.get("/api/getCurrentUserChatRoom/:id", authentication.checkToken, apiController.getCurrentUserChatRoom);
 app.post("/api/createChatRoom", authentication.checkToken, apiController.createChatRoom);
+app.get("/api/getMessages/:id", authentication.checkToken, apiController.getMessages);
 app.post(
   "/api/upload",
   multerUploads,

@@ -14,14 +14,21 @@ const authentication = require("./models/authentication");
 const storage = multer.memoryStorage();
 const multerUploads = multer({ storage }).single("image");
 dotenv.config({ path: ".env" });
-
+const socketController = require(__dirname + "/controllers/socket");
 const apiController = require(__dirname + "/controllers/api");
+
 const app = express();
 
+// Socket IO
 const socketIo = require("socket.io");
 const http = require("http");
-
-
+const server = http.createServer(app);
+const io = socketIo(server, {
+  cors: {
+    origin: '*',
+  }
+});
+socketController.Socket(io);
 /*
  * Connect to MongoDB.
  */
@@ -82,9 +89,6 @@ app.use(
 );
 app.use("/uploads", express.static(process.cwd() + "/uploads"));
 
-// app.get("/test", homeController.test);
-
-// Routes for react views
 app.get("/", function (req, res) {
   res.json("https://github.com/superbahbi/twitter-clone api endpoint");
 });
@@ -116,57 +120,7 @@ app.post(
   authentication.checkToken,
   apiController.uploadPhoto
 );
-const server = http.createServer(app);
 
-const io = socketIo(server, {
-  cors: {
-    origin: '*',
-  }
-}); // < Interesting!
-// socket io chat connection
-let interval;
-
-io.on("connection", (socket) => {
-  console.log(socket.id + ' ==== connected');
-  socket.on('chat', res => {
-    console.log(res);
-    io.emit('updatechat', res);
-  });
-
-  socket.on('join', roomName => {
-    let split = roomName.split('-'); // ['user_id1', 'user_id2']
-    console.log("Channel created : " + roomName)
-    console.log("Socket id : " + socket.id)
-    let unique = [...new Set(split)].sort((a, b) => (a < b ? -1 : 1)); // ['username1', 'username2']
-
-    let updatedRoomName = `${unique[0]}-${unique[1]}`; // 'username1--with--username2'
-
-    Array.from(socket.rooms)
-      .filter(it => it !== socket.id)
-      .forEach(id => {
-        socket.leave(id);
-        socket.removeAllListeners("emitMessage");
-      });
-
-    socket.join(updatedRoomName);
-    socket.on("emitMessage", message => {
-      console.log(message);
-      console.log(socket.rooms);
-      Array.from(socket.rooms)
-        .filter(it => it !== socket.id)
-        .forEach(id => {
-          console.log("id : " + id)
-          socket.to(id).emit('onMessage', message);
-        });
-    });
-
-  });
-
-  socket.on("disconnect", () => {
-    console.log(socket.id + ' ==== diconnected');
-    socket.removeAllListeners();
-  });
-});
 
 server.listen(process.env.PORT || 3000, () => {
   console.log(

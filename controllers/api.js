@@ -637,14 +637,12 @@ exports.createChatRoom = async (req, res, next) => {
         if (err) {
           return next(err);
         }
-        console.log(data)
         res.json(user);
       });
     }
   );
 }
 exports.getCurrentUserChatRoom = async (req, res, next) => {
-  console.log(req.params);
   User.findOne({ _id: req.params.id }, (err, foundChatRoom) => {
     if (err) {
       res.json(err);

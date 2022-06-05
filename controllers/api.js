@@ -1,6 +1,7 @@
 const { ObjectId } = require("mongodb");
 const User = require("../models/User");
 const Tweet = require("../models/Tweet");
+const Chat = require("../models/Chat");
 const passport = require("passport");
 const validator = require("validator");
 const moment = require("moment");
@@ -617,30 +618,74 @@ exports.getThreadTweet = async (req, res, next) => {
   }
 };
 exports.createChatRoom = async (req, res, next) => {
-  const userData = req.body || "";
+  const data = req.body
+  // Check if sender room exists
+  User.findOne({ _id: data.sender._id }, (err, user) => {
+    if (err) {
+      console.log(err);
+    } else {
+      if (user) {
+        let update = false
+        updateChatData = {
+          _id: data._id,
+          sender: data.sender._id,
+          receiver: data.receiver._id,
+          avatar: data.receiver.profile.avatar.filename,
+          name: data.receiver.profile.name,
+        };
 
-  // Todo check if chat room already exists
-  User.findOne(
-    {
-      _id: userData.senderID
-    },
-    function (err, user) {
-      data = {
-        _id: userData._id,
-        sender: userData.senderID,
-        receiver: userData.receiverID,
-        avatar: userData.avatar,
-        name: userData.name,
-      };
-      user.chatroom.push(data);
-      user.save(err => {
-        if (err) {
-          return next(err);
+        user.chatroom.map(room => {
+          if (room._id === data._id) {
+            update = true;
+            return
+          }
+        })
+
+        if (!update) {
+          user.chatroom.push(updateChatData);
+          user.save((err) => {
+            if (err) {
+              console.log(err)
+            }
+            console.log("Sender added to chatroom2");
+          });
         }
-        res.json(user);
-      });
+      }
     }
-  );
+  })
+
+  // Check if receiver room exists
+  User.findOne({ _id: data.receiver._id }, (err, user) => {
+    if (err) {
+      console.log(err);
+    } else {
+      if (user) {
+        let update;
+        updateChatData = {
+          _id: data._id,
+          sender: data.receiver._id,
+          receiver: data.sender._id,
+          avatar: data.sender.profile.avatar.filename,
+          name: data.sender.profile.name,
+        };
+        user.chatroom.map(room => {
+          if (room._id === data._id) {
+            update = true;
+            return
+          }
+        })
+        if (!update) {
+          user.chatroom.push(updateChatData);
+          user.save((err) => {
+            if (err) {
+              console.log(err)
+            }
+            console.log("Receiver added to chatroom");
+          });
+        }
+      }
+    }
+  })
 }
 exports.getCurrentUserChatRoom = async (req, res, next) => {
   User.findOne({ _id: req.params.id }, (err, foundChatRoom) => {
@@ -649,4 +694,12 @@ exports.getCurrentUserChatRoom = async (req, res, next) => {
     }
     res.json(foundChatRoom.chatroom);
   });
+}
+exports.getMessages = async (req, res, next) => {
+  Chat.findOne({ roomID: req.params.id }, (err, foundChat) => {
+    if (err) {
+      res.json(err);
+    }
+    res.json(foundChat.message);
+  })
 }

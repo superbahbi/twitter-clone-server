@@ -1,11 +1,12 @@
 const mongoose = require("mongoose");
 const chatSchema = new mongoose.Schema({
+    _id: String,
     roomID: String,
     message: [{
         id: String,
         user: String,
         body: String,
-        createdAt: Date,
+        createdAt: Number,
     }],
 });
 const Chat = mongoose.model("Chat", chatSchema);

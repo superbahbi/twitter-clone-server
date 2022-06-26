@@ -10,52 +10,54 @@ const jwt = require("jsonwebtoken");
 const upload = require("../models/Upload");
 exports.postSignup = (req, res) => {
   const username = req.body.username || "";
+  const name = req.body.name || "";
   const email = req.body.email || "";
   const password = req.body.password || "";
   const confirmpassword = req.body.confirmpassword || "";
   const gender = req.body.gender || "";
   const phone = req.body.phone || "";
+  // Create username and check if it exist
+
   const validationErrors = [];
   if (validator.isEmpty(username))
     validationErrors.push({
       name: "username",
-      message: "Please enter a username."
+      message: "Please enter a username.",
+    });
+  if (validator.isEmpty(name))
+    validationErrors.push({
+      name: "name",
+      message: "Please enter a name.",
     });
   if (!validator.isEmail(email))
     validationErrors.push({
       name: "email",
-      message: "Please enter a valid email address."
+      message: "Please enter a valid email address.",
     });
   if (validator.isEmpty(password))
     validationErrors.push({
       name: "password",
-      message: "Password cannot be blank."
+      message: "Password cannot be blank.",
     });
   if (validator.isEmpty(confirmpassword))
     validationErrors.push({
       name: "confirmpassword",
-      message: "Confirm Password cannot be blank."
+      message: "Confirm Password cannot be blank.",
     });
   if (!validator.equals(password, confirmpassword))
     validationErrors.push({
       name: "password",
-      message: "Password is not match."
+      message: "Password is not match.",
     });
   if (validator.isEmpty(gender))
     validationErrors.push({
       name: "gender",
-      message: "Please pick a gender."
+      message: "Please pick a gender.",
     });
   if (!validator.equals(gender, "M") && !validator.equals(gender, "F"))
     validationErrors.push({
       name: "gender",
-      message: "Please pick a gender."
-    });
-
-  if (validator.isEmpty(phone))
-    validationErrors.push({
-      name: "phone",
-      message: "Please enter a phone number."
+      message: "Please pick a gender.",
     });
 
   if (validationErrors.length) {
@@ -66,13 +68,12 @@ exports.postSignup = (req, res) => {
       _id: new ObjectId(),
       username: username,
       profile: {
-        name: null,
+        name: name,
         email: email,
-        bio: null,
+        bio: "",
         gender: gender,
-        phone: phone,
-        regDate: Math.round(new Date().getTime() / 1000)
-      }
+        regDate: Math.round(new Date().getTime() / 1000),
+      },
     }),
     password,
     function (err, user) {
@@ -80,9 +81,29 @@ exports.postSignup = (req, res) => {
         validationErrors.push(err);
         res.status(400).json(validationErrors);
       } else {
-        return res
-          .status(200)
-          .json({ success: "User " + username + " created!" });
+        if (user) {
+          user = user.toObject();
+          delete user.salt;
+          delete user.hash;
+          let token = jwt.sign(user, process.env.JWT_SECRET, {
+            expiresIn: "24h",
+          });
+
+          // return the JWT token for the future API calls
+          res.status(200).json({
+            success: true,
+            message: "Authentication successful!",
+            token: token,
+            user: user,
+          });
+        } else {
+          validationErrors.push({
+            success: false,
+            message:
+              "The username and password you entered did not match our records. Please double-check and try again.",
+          });
+          res.status(400).json(validationErrors);
+        }
       }
     }
   );
@@ -94,31 +115,30 @@ exports.postSignup = (req, res) => {
 exports.postLogin = (req, res, next) => {
   const username = req.body.username || "";
   const password = req.body.password || "";
-
   const validationErrors = [];
   if (validator.isEmpty(username))
     validationErrors.push({
       success: false,
-      message: "Please enter a username."
+      message: "Please enter a username.",
     });
 
   if (validator.isEmpty(password))
     validationErrors.push({
       success: false,
-      message: "Password cannot be blank."
+      message: "Password cannot be blank.",
     });
   if (validationErrors.length) {
     return res.status(400).json(validationErrors);
   }
   let user = new User({
     username: username,
-    password: password
+    password: password,
   });
   req.login(user, function (err) {
     if (err) {
       validationErrors.push({
         success: false,
-        message: "Authentication failed! Please check the request"
+        message: "Authentication failed! Please check the request",
       });
       res.status(400).json(validationErrors);
     } else {
@@ -128,7 +148,7 @@ exports.postLogin = (req, res, next) => {
           delete user.salt;
           delete user.hash;
           let token = jwt.sign(user, process.env.JWT_SECRET, {
-            expiresIn: "24h"
+            expiresIn: "24h",
           });
 
           // return the JWT token for the future API calls
@@ -136,13 +156,13 @@ exports.postLogin = (req, res, next) => {
             success: true,
             message: "Authentication successful!",
             token: token,
-            user: user
+            user: user,
           });
         } else {
           validationErrors.push({
             success: false,
             message:
-              "The username and password you entered did not match our records. Please double-check and try again."
+              "The username and password you entered did not match our records. Please double-check and try again.",
           });
           res.status(400).json(validationErrors);
         }
@@ -158,33 +178,33 @@ exports.getAllTweet = (req, res) => {
           from: "users",
           localField: "username",
           foreignField: "username",
-          as: "user_data"
-        }
+          as: "user_data",
+        },
       },
       {
         $project: {
           "user_data.salt": 0,
-          "user_data.hash": 0
-        }
+          "user_data.hash": 0,
+        },
       },
       {
         $unwind: {
           path: "$user_data",
-          preserveNullAndEmptyArrays: true
-        }
+          preserveNullAndEmptyArrays: true,
+        },
       },
       {
         $sort: {
-          timestamp: -1
-        }
-      }
+          timestamp: -1,
+        },
+      },
     ],
     function (err, foundTweet) {
       if (err) {
         console.log(err);
       }
       res.send({
-        foundTweet
+        foundTweet,
       });
     }
   );
@@ -198,33 +218,33 @@ exports.getUserTweet = (req, res) => {
           from: "users",
           localField: "username",
           foreignField: "username",
-          as: "user_data"
-        }
+          as: "user_data",
+        },
       },
       {
         $project: {
           "user_data.salt": 0,
-          "user_data.hash": 0
-        }
+          "user_data.hash": 0,
+        },
       },
       {
         $sort: {
-          timestamp: -1
-        }
+          timestamp: -1,
+        },
       },
       {
         $unwind: {
           path: "$user_data",
-          preserveNullAndEmptyArrays: true
-        }
-      }
+          preserveNullAndEmptyArrays: true,
+        },
+      },
     ],
     function (err, foundTweet) {
       if (err) {
         console.log(err);
       }
       res.send({
-        foundTweet
+        foundTweet,
       });
     }
   );
@@ -252,7 +272,7 @@ exports.postTweet = (req, res, next) => {
   // Adding new tweet to mongodb
   User.findOne(
     {
-      username: req.decoded.username
+      username: req.decoded.username,
     },
     function (err, user) {
       tweet._id = new ObjectId();
@@ -260,6 +280,7 @@ exports.postTweet = (req, res, next) => {
       tweet.name = user.profile.name;
       tweet.timestamp = new Date();
       tweet.content = req.body.tweet;
+      tweet.link = req.body.link;
       if (!_.isEmpty(req.file)) {
         switch (req.file.mimetype) {
           case "image/gif":
@@ -302,54 +323,51 @@ exports.getAllUser = (req, res) => {
           from: "users",
           localField: "username",
           foreignField: "username",
-          as: "user_data"
-        }
+          as: "user_data",
+        },
       },
       {
         $project: {
-          "salt": 0,
-          "hash": 0,
+          salt: 0,
+          hash: 0,
           "profile.phone": 0,
           "profile.birthday": 0,
-          "user_data": 0
-
-        }
+          user_data: 0,
+        },
       },
       {
         $unwind: {
           path: "$user_data",
-          preserveNullAndEmptyArrays: true
-        }
+          preserveNullAndEmptyArrays: true,
+        },
       },
       {
         $sort: {
-          timestamp: -1
-        }
-      }
+          timestamp: -1,
+        },
+      },
     ],
     function (err, foundUser) {
       if (err) {
         console.log(err);
       }
-      res.send(
-        foundUser
-      );
+      res.send(foundUser);
     }
   );
 };
 exports.deleteTweet = (req, res, next) => {
-  Tweet.deleteOne({ _id: req.body.id }, function (err, result) {
+  Tweet.deleteOne({ _id: req.params.id }, function (err, result) {
     if (err) {
-      return res.send(err);
+      return res.status(400).json(err);
     } else {
-      return res.send(result);
+      return res.status(200).json(result);
     }
   });
 };
 exports.updateUser = async (req, res, next) => {
   User.findOne(
     {
-      username: req.body.username
+      username: req.body.username,
     },
     function (err, user) {
       switch (req.body.field) {
@@ -367,7 +385,7 @@ exports.updateUser = async (req, res, next) => {
           break;
       }
 
-      user.save(err => {
+      user.save((err) => {
         if (err) {
           return next(err);
         }
@@ -381,7 +399,7 @@ exports.uploadPhoto = async (req, res, next) => {
   if (req.body.username && req.file && req.body.type) {
     User.findOne(
       {
-        username: req.body.username
+        username: req.body.username,
       },
       function (err, user) {
         if (err) {
@@ -410,7 +428,7 @@ exports.uploadPhoto = async (req, res, next) => {
                     res.status(400).json("Invalid type");
                     break;
                 }
-                user.save(err => {
+                user.save((err) => {
                   if (err) {
                     return next(err);
                   }
@@ -432,12 +450,14 @@ exports.uploadPhoto = async (req, res, next) => {
 
 exports.likeTweet = async (req, res, next) => {
   const tweetId = req.params.id;
-  const profileId = req.body.profile_id;
-
+  const profileId = req.decoded._id;
+  if (!tweetId || !profileId) {
+    return res.status(400).json("Incomplete request data");
+  }
   if (tweetId) {
     Tweet.findOne(
       {
-        _id: tweetId
+        _id: tweetId,
       },
 
       function (err, tweet) {
@@ -466,7 +486,7 @@ exports.likeTweet = async (req, res, next) => {
 
         if (!deleted) {
           tweet.likes.push(profileId);
-          tweet.save(err => {
+          tweet.save((err) => {
             if (err) {
               return next(err);
             }
@@ -504,7 +524,7 @@ exports.postComment = async (req, res, next) => {
   if (tweetId) {
     Tweet.findOne(
       {
-        _id: tweetId
+        _id: tweetId,
       },
 
       async function (err, tweet) {
@@ -540,10 +560,10 @@ exports.postComment = async (req, res, next) => {
             content: comment,
             name: name,
             username: username,
-            avatar: avatar
+            avatar: avatar,
           };
           tweet.comment.push(data);
-          await tweet.save(err => {
+          await tweet.save((err) => {
             if (err) {
               res.status(400).json(err);
             }
@@ -582,34 +602,34 @@ exports.getThreadTweet = async (req, res, next) => {
             from: "users",
             localField: "username",
             foreignField: "username",
-            as: "user_data"
-          }
+            as: "user_data",
+          },
         },
         {
           $project: {
             "user_data.salt": 0,
-            "user_data.hash": 0
-          }
+            "user_data.hash": 0,
+          },
         },
         {
           $sort: {
-            "comment.timestamp": -1
-          }
+            "comment.timestamp": -1,
+          },
         },
 
         {
           $unwind: {
             path: "$user_data",
-            preserveNullAndEmptyArrays: true
-          }
-        }
+            preserveNullAndEmptyArrays: true,
+          },
+        },
       ],
       function (err, foundTweet) {
         if (err) {
           console.log(err);
         }
         res.status(200).json({
-          foundTweet
+          foundTweet,
         });
       }
     );
@@ -618,14 +638,14 @@ exports.getThreadTweet = async (req, res, next) => {
   }
 };
 exports.createChatRoom = async (req, res, next) => {
-  const data = req.body
+  const data = req.body;
   // Check if sender room exists
   User.findOne({ _id: data.sender._id }, (err, user) => {
     if (err) {
       console.log(err);
     } else {
       if (user) {
-        let update = false
+        let update = false;
         updateChatData = {
           _id: data._id,
           sender: data.sender._id,
@@ -634,25 +654,25 @@ exports.createChatRoom = async (req, res, next) => {
           name: data.receiver.profile.name,
         };
 
-        user.chatroom.map(room => {
+        user.chatroom.map((room) => {
           if (room._id === data._id) {
             update = true;
-            return
+            return;
           }
-        })
+        });
 
         if (!update) {
           user.chatroom.push(updateChatData);
           user.save((err) => {
             if (err) {
-              console.log(err)
+              console.log(err);
             }
             console.log("Sender added to chatroom2");
           });
         }
       }
     }
-  })
+  });
 
   // Check if receiver room exists
   User.findOne({ _id: data.receiver._id }, (err, user) => {
@@ -668,25 +688,25 @@ exports.createChatRoom = async (req, res, next) => {
           avatar: data.sender.profile.avatar.filename,
           name: data.sender.profile.name,
         };
-        user.chatroom.map(room => {
+        user.chatroom.map((room) => {
           if (room._id === data._id) {
             update = true;
-            return
+            return;
           }
-        })
+        });
         if (!update) {
           user.chatroom.push(updateChatData);
           user.save((err) => {
             if (err) {
-              console.log(err)
+              console.log(err);
             }
             console.log("Receiver added to chatroom");
           });
         }
       }
     }
-  })
-}
+  });
+};
 exports.getCurrentUserChatRoom = async (req, res, next) => {
   User.findOne({ _id: req.params.id }, (err, foundChatRoom) => {
     if (err) {
@@ -694,12 +714,12 @@ exports.getCurrentUserChatRoom = async (req, res, next) => {
     }
     res.json(foundChatRoom.chatroom);
   });
-}
+};
 exports.getMessages = async (req, res, next) => {
   Chat.findOne({ roomID: req.params.id }, (err, foundChat) => {
     if (err) {
       res.json(err);
     }
     res.json(foundChat.message);
-  })
-}
+  });
+};

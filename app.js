@@ -25,8 +25,8 @@ const http = require("http");
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: '*',
-  }
+    origin: "*",
+  },
 });
 socketController.Socket(io);
 /*
@@ -37,7 +37,7 @@ mongoose.set("useCreateIndex", true);
 mongoose.set("useNewUrlParser", true);
 mongoose.set("useUnifiedTopology", true);
 mongoose.connect(process.env.MONGODB_URI);
-mongoose.connection.on("error", err => {
+mongoose.connection.on("error", (err) => {
   console.error(err);
   console.log(
     "%s MongoDB connection error. Please make sure MongoDB is running.",
@@ -53,15 +53,15 @@ app.use(
     secret: process.env.SESSION_SECRET,
     cookie: { maxAge: 1209600000 }, // two weeks in milliseconds
     store: new MongoStore({
-      mongooseConnection: mongoose.connection
-    })
+      mongooseConnection: mongoose.connection,
+    }),
   })
 );
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(
   bodyParser.urlencoded({
-    extended: true
+    extended: true,
   })
 );
 
@@ -72,19 +72,19 @@ app.use(
 app.use(
   "/js/lib",
   express.static(path.join(__dirname, "node_modules/moment/min"), {
-    maxAge: 31557600000
+    maxAge: 31557600000,
   })
 );
 app.use(
   "/js/lib",
   express.static(path.join(__dirname, "node_modules/bootstrap/dist/js"), {
-    maxAge: 31557600000
+    maxAge: 31557600000,
   })
 );
 app.use(
   "/js/lib",
   express.static(path.join(__dirname, "node_modules/jquery/dist"), {
-    maxAge: 31557600000
+    maxAge: 31557600000,
   })
 );
 app.use("/uploads", express.static(process.cwd() + "/uploads"));
@@ -109,19 +109,34 @@ app.post(
   apiController.postTweet
 );
 
-app.delete("/api/tweet", authentication.checkToken, apiController.deleteTweet);
+app.delete(
+  "/api/tweet/:id",
+  authentication.checkToken,
+  apiController.deleteTweet
+);
 app.put("/api/like/:id", authentication.checkToken, apiController.likeTweet);
 app.put("/api/profile", authentication.checkToken, apiController.updateUser);
-app.get("/api/getCurrentUserChatRoom/:id", authentication.checkToken, apiController.getCurrentUserChatRoom);
-app.post("/api/createChatRoom", authentication.checkToken, apiController.createChatRoom);
-app.get("/api/getMessages/:id", authentication.checkToken, apiController.getMessages);
+app.get(
+  "/api/getCurrentUserChatRoom/:id",
+  authentication.checkToken,
+  apiController.getCurrentUserChatRoom
+);
+app.post(
+  "/api/createChatRoom",
+  authentication.checkToken,
+  apiController.createChatRoom
+);
+app.get(
+  "/api/getMessages/:id",
+  authentication.checkToken,
+  apiController.getMessages
+);
 app.post(
   "/api/upload",
   multerUploads,
   authentication.checkToken,
   apiController.uploadPhoto
 );
-
 
 server.listen(process.env.PORT || 3000, () => {
   console.log(
@@ -132,4 +147,3 @@ server.listen(process.env.PORT || 3000, () => {
   );
   console.log("  Press CTRL-C to stop\n");
 });
-

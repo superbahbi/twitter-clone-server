@@ -6,17 +6,18 @@ const tweetSchema = new mongoose.Schema({
   name: String,
   timestamp: Date,
   content: String,
+  link: String,
   retweets: {
     type: String,
-    default: 0
+    default: 0,
   },
   likes: [
     {
-      user_id: String
-    }
+      user_id: String,
+    },
   ],
   img: {
-    filename: String
+    filename: String,
   },
   comment: [
     {
@@ -29,11 +30,11 @@ const tweetSchema = new mongoose.Schema({
       img: {
         filename: {
           type: String,
-          default: "replaceme.jpg"
-        }
-      }
-    }
-  ]
+          default: "replaceme.jpg",
+        },
+      },
+    },
+  ],
 });
 
 const Tweet = mongoose.model("Tweet", tweetSchema);

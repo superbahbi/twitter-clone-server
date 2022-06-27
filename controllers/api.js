@@ -479,6 +479,7 @@ exports.likeTweet = async (req, res, next) => {
                     .status(500)
                     .json({ error: "error in deleting address" });
                 }
+                return res.json(data);
               }
             );
           }

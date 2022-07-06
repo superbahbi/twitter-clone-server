@@ -292,7 +292,43 @@ exports.postTweet = (req, res, next) => {
                 if (err) {
                   res.status(400).json(err);
                 } else {
-                  res.send(t);
+                  Tweet.aggregate(
+                    [
+                      {
+                        $lookup: {
+                          from: "users",
+                          localField: "username",
+                          foreignField: "username",
+                          as: "user_data",
+                        },
+                      },
+                      {
+                        $project: {
+                          "user_data.salt": 0,
+                          "user_data.hash": 0,
+                        },
+                      },
+                      {
+                        $unwind: {
+                          path: "$user_data",
+                          preserveNullAndEmptyArrays: true,
+                        },
+                      },
+                      {
+                        $sort: {
+                          timestamp: -1,
+                        },
+                      },
+                    ],
+                    function (err, foundTweet) {
+                      if (err) {
+                        console.log(err);
+                      }
+                      res.send({
+                        foundTweet,
+                      });
+                    }
+                  );
                 }
               });
             });
@@ -304,11 +340,45 @@ exports.postTweet = (req, res, next) => {
       } else {
         tweet.save(function (err, t) {
           if (err) {
-            res.status(400).json(err);
-            return;
+            return res.status(400).json(err);
           } else {
-            res.send(t);
-            return;
+            Tweet.aggregate(
+              [
+                {
+                  $lookup: {
+                    from: "users",
+                    localField: "username",
+                    foreignField: "username",
+                    as: "user_data",
+                  },
+                },
+                {
+                  $project: {
+                    "user_data.salt": 0,
+                    "user_data.hash": 0,
+                  },
+                },
+                {
+                  $unwind: {
+                    path: "$user_data",
+                    preserveNullAndEmptyArrays: true,
+                  },
+                },
+                {
+                  $sort: {
+                    timestamp: -1,
+                  },
+                },
+              ],
+              function (err, foundTweet) {
+                if (err) {
+                  console.log(err);
+                }
+                res.send({
+                  foundTweet,
+                });
+              }
+            );
           }
         });
       }
@@ -360,7 +430,7 @@ exports.deleteTweet = (req, res, next) => {
     if (err) {
       return res.status(400).json(err);
     } else {
-      return res.status(200).json(result);
+      return res.json(result);
     }
   });
 };
@@ -477,7 +547,7 @@ exports.likeTweet = async (req, res, next) => {
                 if (err) {
                   return res
                     .status(500)
-                    .json({ error: "error in deleting address" });
+                    .json({ error: "error in deleting tweet" });
                 }
                 return res.json(data);
               }

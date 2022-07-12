@@ -10,12 +10,12 @@ const passportLocalMongoose = require("passport-local-mongoose");
 const MongoStore = require("connect-mongo")(session);
 const multer = require("multer");
 const cors = require("cors");
-const authentication = require("./models/authentication");
+const authentication = require(__dirname + "/src/models/authentication");
 const storage = multer.memoryStorage();
 const multerUploads = multer({ storage }).single("image");
 dotenv.config({ path: ".env" });
-const socketController = require(__dirname + "/controllers/socket");
-const apiController = require(__dirname + "/controllers/api");
+const socketController = require(__dirname + "/src/controllers/socket");
+const apiController = require(__dirname + "/src/controllers/api");
 
 const app = express();
 
@@ -96,11 +96,20 @@ app.post("/api/login", apiController.postLogin);
 app.get("/api/user/:username", apiController.getUser);
 app.get("/api/userWithID/:id", apiController.getUserWithID);
 app.post("/api/signup", apiController.postSignup);
+app.post("/api/verifyToken", apiController.verifyToken);
 // Tweet  manipulation
-app.get("/api/tweet", apiController.getAllTweet);
-app.get("/api/thread/:threadID", apiController.getThreadTweet);
-app.get("/api/getAllUser", apiController.getAllUser);
-app.get("/api/tweet/:username", apiController.getUserTweet);
+app.get("/api/tweet", authentication.checkToken, apiController.getAllTweet);
+app.get(
+  "/api/thread/:threadID",
+  authentication.checkToken,
+  apiController.getThreadTweet
+);
+app.get("/api/getAllUser", authentication.checkToken, apiController.getAllUser);
+app.get(
+  "/api/tweet/:username",
+  authentication.checkToken,
+  apiController.getUserTweet
+);
 app.post("/api/comment", authentication.checkToken, apiController.postComment);
 app.post(
   "/api/tweet",

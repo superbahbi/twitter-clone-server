@@ -8,6 +8,8 @@ const moment = require("moment");
 const _ = require("lodash");
 const jwt = require("jsonwebtoken");
 const upload = require("../models/Upload");
+const authentication = require("../models/authentication");
+
 exports.postSignup = (req, res) => {
   const username = req.body.username || "";
   const name = req.body.name || "";
@@ -91,7 +93,7 @@ exports.postSignup = (req, res) => {
 
           // return the JWT token for the future API calls
           res.status(200).json({
-            success: true,
+            success: false,
             message: "Authentication successful!",
             token: token,
             user: user,
@@ -148,7 +150,7 @@ exports.postLogin = (req, res, next) => {
           delete user.salt;
           delete user.hash;
           let token = jwt.sign(user, process.env.JWT_SECRET, {
-            expiresIn: "24h",
+            expiresIn: "25hr",
           });
 
           // return the JWT token for the future API calls
@@ -169,6 +171,10 @@ exports.postLogin = (req, res, next) => {
       })(req, res, next);
     }
   });
+};
+
+exports.verifyToken = (req, res) => {
+  console.log("verify");
 };
 exports.getAllTweet = (req, res) => {
   Tweet.aggregate(

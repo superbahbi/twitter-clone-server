@@ -281,12 +281,17 @@ exports.postTweet = (req, res, next) => {
       username: req.decoded.username,
     },
     function (err, user) {
+      let tweetContent = req.body.tweet;
       tweet._id = new ObjectId();
       tweet.username = user.username;
       tweet.name = user.profile.name;
       tweet.timestamp = new Date();
-      tweet.content = req.body.tweet;
-      tweet.link = req.body.link;
+      if (req.body.link) {
+        tweet.link = req.body.link;
+        tweetContent = tweetContent.replace(req.body.link, "");
+        console.log(tweetContent);
+      }
+      tweet.content = tweetContent;
       if (!_.isEmpty(req.file)) {
         switch (req.file.mimetype) {
           case "image/gif":
@@ -577,6 +582,7 @@ exports.likeTweet = async (req, res, next) => {
   }
 };
 exports.postComment = async (req, res, next) => {
+  console.log(req.body);
   const name = req.body.name || "";
   const username = req.body.username || "";
   const comment = req.body.comment || "";

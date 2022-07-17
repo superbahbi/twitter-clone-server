@@ -750,7 +750,7 @@ exports.createChatRoom = async (req, res, next) => {
             if (err) {
               console.log(err);
             }
-            console.log("Sender added to chatroom2");
+            console.log("Sender added to chatroom");
           });
         }
       }

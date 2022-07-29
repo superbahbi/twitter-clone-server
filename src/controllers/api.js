@@ -115,6 +115,7 @@ exports.postSignup = (req, res) => {
  * Login request page.
  */
 exports.postLogin = (req, res, next) => {
+  console.log(req.body);
   const username = req.body.username || "";
   const password = req.body.password || "";
   const validationErrors = [];
